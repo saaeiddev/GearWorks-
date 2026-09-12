@@ -1,4 +1,5 @@
 import * as T from 'three';
+import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
 export function createWorkshop(scene,mobile){
  const group=new T.Group();scene.add(group);const interact=[];const liftArms=new T.Group();group.add(liftArms);
@@ -51,5 +52,9 @@ export function createWorkshop(scene,mobile){
  const roadCurve=new T.CatmullRomCurve3([new T.Vector3(-3,.04,-5.7),new T.Vector3(-4,.05,-11),new T.Vector3(-10,.06,-18),new T.Vector3(-7,.07,-27),new T.Vector3(-14,.08,-39)]);let positions=[],uv=[],indices=[];for(let i=0;i<=100;i++){let t=i/100,p=roadCurve.getPoint(t),dir=roadCurve.getTangent(t),normal=new T.Vector3(-dir.z,0,dir.x).normalize();for(let s of [-1,1]){let v=p.clone().addScaledVector(normal,s*1.2);positions.push(...v);uv.push(s===-1?0:1,t*20)}if(i<100){let k=i*2;indices.push(k,k+1,k+2,k+1,k+3,k+2)}}let rg=new T.BufferGeometry();rg.setAttribute('position',new T.Float32BufferAttribute(positions,3));rg.setAttribute('uv',new T.Float32BufferAttribute(uv,2));rg.setIndex(indices);rg.computeVertexNormals();mesh(rg,mat('#4a5154',1),[0,0,0],land);for(let i=0;i<42;i++){let t=i/42,p=roadCurve.getPoint(t),d=roadCurve.getTangent(t);let b=box(.055,.014,.38,white,p.toArray(),land);b.rotation.y=Math.atan2(d.x,d.z)}
  // Floating dust, deliberately sparse on phones.
  const dustGeo=new T.BufferGeometry();const count=mobile?35:110;let arr=new Float32Array(count*3);for(let i=0;i<count;i++){arr[i*3]=(rnd()-.5)*15;arr[i*3+1]=rnd()*5;arr[i*3+2]=(rnd()-.5)*12}dustGeo.setAttribute('position',new T.BufferAttribute(arr,3));const dust=new T.Points(dustGeo,new T.PointsMaterial({color:'#f3dac0',size:.013,transparent:true,opacity:.28,depthWrite:false}));group.add(dust);
+ // Batch static geometry while retaining semantic object picking.
+ scene.updateMatrixWorld(true);
+ const buckets=new Map();group.traverse(o=>{if(!o.isMesh||o.material.transparent)return;let n=o,id=null,dynamic=false;while(n){if(n===liftArms)dynamic=true;if(n.userData.part)id=n.userData.part;n=n.parent}if(dynamic)return;const key=o.material.uuid+'|'+(id||'');if(!buckets.has(key))buckets.set(key,{material:o.material,id,objects:[]});buckets.get(key).objects.push(o)});
+ for(const bucket of buckets.values()){if(bucket.objects.length<2)continue;let geos=bucket.objects.map(o=>{let g=o.geometry.clone();g.applyMatrix4(o.matrixWorld);if(g.index)g=g.toNonIndexed();return g});let geometry=mergeGeometries(geos);if(!geometry)continue;const combined=new T.Mesh(geometry,bucket.material);combined.castShadow=true;combined.receiveShadow=true;if(bucket.id){combined.userData.part=bucket.id;interact.push(combined)}scene.add(combined);bucket.objects.forEach(o=>o.removeFromParent());geos.forEach(g=>g.dispose())}
  return{group,interact,liftArms,dust,materials:{steel,orange,black},text,mesh,box,rod,tag};
 }

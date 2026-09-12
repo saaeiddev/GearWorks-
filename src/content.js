@@ -13,4 +13,4 @@ export const parts=[
 {id:'tires',label:'Tire Station',category:'Rubber & road · 10',title:'Grip begins here.',icon:'wheel',point:[4.7,.9,2],camera:[2.3,1.7,4.5],target:[4.7,.7,1.9],description:'A tire is an engineered composite of rubber, steel and fabric. Its construction sets the foundation for grip, comfort and durability.',features:['Steel belts stabilize the tread','Carcass carries the load','Bead seals the tire to its wheel','Compound and tread suit different conditions'],workshop:true},
 {id:'torque',label:'Torque Wrench',category:'Precision · 11',title:'Tight means measured.',icon:'tool',point:[-3.8,1.31,1.3],camera:[-2.9,2.1,2.7],target:[-3.8,1.3,1.25],description:'A torque wrench applies a specified rotational force to a fastener. Correct torque helps produce the intended clamp load.',features:['Set the specified torque value','Use the correct socket and technique','Follow the required tightening sequence','Keep the tool calibrated'],workshop:true}
 ];
-export const home={camera:[6.8,3.15,8.7],target:[-.65,.85,0],fov:43};
+export const home={camera:[4.8,2.1,6.2],target:[-.75,.8,0],fov:38};
